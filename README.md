@@ -1,21 +1,21 @@
 # 《`CUDA` 编程：基础与实践》源代码
 
-## 告读者：
-* 代码还在开发中。由琪同学为本书写了 Python 版本的代码（用 pyCUDA）:
-https://github.com/YouQixiaowu/CUDA-Programming-with-Python
-
 ## 关于本书：
-  * 将于 2020 年由清华大学出版社出版，语言为中文。
-  * 覆盖开普勒到图灵（计算能力从 3.5 到 7.5）的所有 GPU 架构。
+  * 将于 2020 年由清华大学出版社出版，语言为中文。 **前 8 章书稿已经公开，见本仓库的 PDF 文件。如果您想尽早阅读余下的章节，请在前 8 章书稿中找出 8 个错误（包括知识性错误、错别字、前后不一致等），然后私下联系我。邮箱：brucenju(at)gmail.com。**
+  * 覆盖开普勒到图灵（计算能力从 3.0 到 7.5）的所有 GPU 架构。
   * 尽量同时照顾 Windows 和 Linux 用户。
   * 假设读者有如下基础：
     * 熟悉 `C++` (对全书来说)；
-    * 熟悉本科水平的物理和数学（对某些章节来说）。
+    * 熟悉本科水平的物理（对第 13 章来说）；
+    * 熟悉本科水平的数学（对第 14 章来说）；
+    * 熟悉 `Python` 和 `NumPy`（对第 15 章来说）。
+
+
     
 ## 我的测试系统
 * Linux: 主机编译器用的 `g++`。
 * Windows: 仅使用命令行解释器 `CMD`，主机编译器用 Visual Studio 中的 `cl`。在用 `nvcc` 编译 CUDA 程序时，可能需要添加 `-Xcompiler "/wd 4819"` 选项消除和 unicode 有关的警告。
-* 全书代码可在 `CUDA` 9-10.2 （包含）之间的版本运行。
+* 全书代码可在 `CUDA` 9.0-10.2 （包含）之间的版本运行。
 
 
 ## 目录和源代码条目
@@ -105,6 +105,8 @@ https://github.com/YouQixiaowu/CUDA-Programming-with-Python
 | 文件        | 知识点 |
 |:------------|:---------------|
 | `reduce.cu` | 线程束同步函数、线程束洗牌函数以及协作组的使用 |
+| `reduce1parallelism.cu` | 提高线程利用率 |
+| `reduce2static.cu` | 利用静态全局内存加速  |
 
 
 ### 第 11 章： `CUDA` 流
@@ -122,28 +124,17 @@ https://github.com/YouQixiaowu/CUDA-Programming-with-Python
 | `oversubscription1.cu` | 统一内存在初始化时才被分配  |
 | `oversubscription2.cu` | 用 GPU 先访问统一内存时可以超过显存的容量 |
 | `oversubscription3.cu` | 用 CPU 先访问统一内存时不可超过主机内存容量 |
+| `prefetch.cu` | 使用 cudaMemPrefetchAsync 函数 |
 
-
-
-### 第 13 章：总结与其它优化技巧
-There is no source code for this chapter.
-
-
-### 第 14 章：分子动力学模拟（MD）简介
-本章无源代码。
-
-
-### 第 15 章：C++ 版本的 MD 程序
-How to compile and run?
-  * type `make` to compile
-  * type `./ljmd 8 10000` to run
-  * type `plot_results` in Matlab command window to check the results
-
-
-### 第 16 章：CUDA 版本的 MD 程序
+### 第 13 章：分子动力学模拟（MD）
+| 文件夹        | 知识点 |
+|:------------|:---------------|
+| `cpp`     | C++ 版本的 MD 程序 |
+| `force-only`   | 仅将求力的函数移植到 CUDA |
+| `whole-code` | 全部移植到 CUDA |
+| `optimization` | 内存访问优化 |
   
-  
-### 第 17 章：CUDA 库
+### 第 14 章：CUDA 库
 | 文件        | 知识点 |
 |:------------|:---------------|
 | `thrust_scan_vector.cu`  | 使用 `thrust` 中的设备矢量 |
@@ -154,7 +145,7 @@ How to compile and run?
 | `curand_host2.cu`        | 用 `cuRAND` 产生高斯分布的随机数 |
   
   
-### 第 18 章: pyCUDA 使用
+### 第 15 章: pyCUDA 使用
 
 由琪同学贡献了本章的代码:
 https://github.com/YouQixiaowu/CUDA-Programming-with-Python
@@ -166,7 +157,7 @@ https://github.com/YouQixiaowu/CUDA-Programming-with-Python
 ### 矢量相加 (第 5 章)
 
 * 数组元素个数 = 1.0e8。
-* CPU (我的笔记本) 函数的执行时间是 60 ms （单精度）核 120 ms （双精度）。
+* CPU (我的笔记本) 函数的执行时间是 60 ms （单精度）和 120 ms （双精度）。
 * GPU 执行时间见下表：
 
 |  V100 (S) | V100 (D) | 2080ti (S) | 2080ti (D) | P100 (S) | P100 (D) | laptop-2070 (S) | laptop-2070 (D) | K40 (S) | K40 (D) |
@@ -208,24 +199,25 @@ https://github.com/YouQixiaowu/CUDA-Programming-with-Python
 | 利用共享内存转置，且无 bank 冲突      | 1.4 ms | 2.5 ms | 2.3 ms | 4.2 ms |  |
 
 
-### 数组规约（第 8-10 章以及第 13 章）
+### 数组规约（第 8-10 章）
 
 * 数组长度为 1.0e8，每个元素为 1.23。
 * 规约的精确结果为 123000000。
-* 下面是用单精度浮点数测试的结果：
+* GPU 为笔记本版本的 GeForce RTX 2070。
+* 下面是用**单精度**浮点数测试的结果：
 
-| 计算方法与机器                         | GeForce RTX 2070 (S)  |   结果  |
+| 计算方法与机器                         | 计算时间 |   结果  |
 |:----------------------------------------------|:----------|:----------|
-| CPU with naive summation                      | 100 ms | 33554432  | 
-| global memory only                            | 5.8 ms  | 123633392 | 
-| static shared memory                          | 5.8 ms | 123633392 | 
-| dynamic shared memory                         | 5.8 ms | 123633392 |  
-| atomicAdd                                     | 3.8 ms |123633392 | 
-| atomicAdd and syncwarp                        | 3.4 ms |123633392 | 
-| atomicAdd and shfl                            | 2.8 ms |123633392 | 
-| atomicAdd and CP                              | 2.8 ms |123633392 | 
-| two kernels and less blocks                   | 2.0 ms |122999920 | 
-| two kernels and less blocks and no cudaMalloc | 1.5 ms |122999920 |
+| CPU 中循环累加                        | 100 ms | 33554432 （**完全错误**） | 
+| 全局内存+线程块同步函数                | 5.8 ms  | 123633392 （**三位**正确的有效数字）| 
+| 静态共享内存+线程块同步函数            | 5.8 ms | 123633392 （**三位**正确的有效数字）| 
+| 动态共享内存+线程块同步函数            | 5.8 ms | 123633392 （**三位**正确的有效数字）|  
+| 共享内存+原子函数+线程块同步函数        | 3.8 ms |123633392 （**三位**正确的有效数字）| 
+| 共享内存+原子函数+线程束同步函数        | 3.4 ms |123633392 （**三位**正确的有效数字）| 
+| 共享内存+原子函数+线程束洗牌函数        | 2.8 ms |123633392 （**三位**正确的有效数字）| 
+| 共享内存+原子函数+协作组               | 2.8 ms |123633392 （**三位**正确的有效数字）| 
+| 共享内存+协作组+两个核函数             | 2.0 ms |123000064 （**七位**正确的有效数字）| 
+| 共享内存+协作组+两个核函数+静态全局内存 | 1.5 ms |123000064 （**七位**正确的有效数字）|
 
 
 ### 邻居列表（第 9 章）
